@@ -14,7 +14,6 @@ But the original is not this, if you need to see the original, please see https:
 ```
 Pytroch = 1.12.1
 Opacus = 1.4.0
-......
 ```
 
 ## Usage
