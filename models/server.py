@@ -21,7 +21,6 @@ def add_weights(num_vars, model_state, agg_model_state):
 
 class FedAvg:
     def __init__(self):
-        print('\nUsing FedAvg algorithm \n')
         self.__model_state = []
         self.num_vars = None
         self.shape_vars = None
@@ -232,10 +231,13 @@ class Server:
 
         if Fedavg or (not dp):
             self.__alg = FedAvg()
+            print('\nUsing FedAvg algorithm \n')
         elif weiavg:
             self.__alg = WeiAvg()
+            print('\nUsing PFA algorithm \n')
         elif PFA or PFA_plus:
             self.__alg = WeiPFA(proj_dims, lanczos_iter, PFA, PFA_plus)
+            print('\nUsing PFA plus algorithm \n')
         else:
             raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!')
 
