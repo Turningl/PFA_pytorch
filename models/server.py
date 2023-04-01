@@ -231,13 +231,13 @@ class Server:
 
         if Fedavg or (not dp):
             self.__alg = FedAvg()
-            print('\nUsing FedAvg algorithm \n')
+            print('\nUsing FedAvg algorithm')
         elif weiavg:
             self.__alg = WeiAvg()
-            print('\nUsing PFA algorithm \n')
+            print('\nUsing PFA algorithm')
         elif PFA or PFA_plus:
             self.__alg = WeiPFA(proj_dims, lanczos_iter, PFA, PFA_plus)
-            print('\nUsing PFA plus algorithm \n')
+            print('\nUsing PFA plus algorithm')
         else:
             raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!')
 
