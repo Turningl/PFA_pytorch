@@ -145,9 +145,6 @@ class WeiPFA:
                     means.append(mean)
             else:
                 for i in range(self.num_vars):
-                    a = self.Vks[i].T.squeeze()
-                    b = mean_priv_model_state[i]
-                    c = torch.mul(self.Vks[i], mean_priv_model_state[i])
                     mean_proj_priv_model_state[i] = torch.mul(self.Vks[i], mean_priv_model_state[i]) + self.means[i]
                     mean_model_state[i] = ((mean_proj_priv_model_state[i] * sum(self.__privacy_eps) + mean_pub_model_state[i] * sum(self.__public_eps))
                                            / sum(self.__privacy_eps + self.__public_eps)).reshape(self.shape_vars[i])
