@@ -14,6 +14,7 @@ But the original is not this, if you need to see the original, please see https:
 ```
 Pytroch = 1.12.1
 Opacus = 1.4.0
+......
 ```
 
 ## Usage
@@ -44,6 +45,6 @@ python main.py --PFA_plus=True --dp=True
 
 
 ## Contributing
-This work is by Junxu Liu. If you have any questions about this article, please contact junxu_liu@ruc.edu.cn
+The first author for this job is Junxu Liu. If you have any questions about this article, please contact junxu_liu@ruc.edu.cn
 
-If you have any questions about this code, please contact me zl16035056@163.com
+If you have any questions about this code, please email me zl16035056@163.com

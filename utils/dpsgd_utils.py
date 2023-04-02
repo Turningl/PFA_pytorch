@@ -106,5 +106,5 @@ def set_epsilons(filename, N, is_distributions=True):
 
 def compute_noise_multiplier(local_dataset_size, local_batch_size, T, epsilon, delta):
     q = local_batch_size / local_dataset_size
-    nm = 10 * q * math.sqrt(T * (-math.log10(delta))) / epsilon
+    nm = 10 / 32 * q * math.sqrt(T * (-math.log10(delta))) / epsilon
     return nm

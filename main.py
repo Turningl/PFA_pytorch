@@ -9,7 +9,6 @@ import torch
 import argparse
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-from torchvision import datasets, transforms
 from utils.create_dataset import create_iid_clients, create_noniid_clients, check_labels
 from models.client import Client
 from models.server import Server
@@ -82,8 +81,8 @@ def main(args):
 
     # set privacy preference
     privacy_preferences = prepare_privacy_preferences(args.eps, args.all_clients)
-    print('privacy preferences: \n', privacy_preferences)
-    print()
+    print('privacy preferences: \n', privacy_preferences, '\n')
+    print('noise multiplier:')
 
     # set clients
     clients = []
@@ -100,7 +99,7 @@ def main(args):
         # set noise multiplier
         if args.dp:
             epsilon = privacy_preferences[i]
-            noise_multiplier = compute_noise_multiplier(local_dataset_size=len(client.dataset_size),
+            noise_multiplier = compute_noise_multiplier(local_dataset_size=client.dataset_size,
                                                         local_batch_size=args.batch_size,
                                                         T=args.global_round * args.sample_ratio,
                                                         epsilon=epsilon,
@@ -121,7 +120,7 @@ def main(args):
     # init server algorithm
     server.init_alg(dp=args.dp,
                     Fedavg=args.Fedavg,
-                    weiavg=args.Weiavg,
+                    Weiavg=args.Weiavg,
                     PFA=args.PFA,
                     PFA_plus=args.PFA_plus,
                     proj_dims=args.proj_dims,
@@ -145,8 +144,9 @@ def main(args):
     for r in range(communication_round):
         print()
         print('the %d communication round \n' % (r + 1))
-        # pick up candidates
-        candidates = server.sample_clients(args.all_clients)
+
+        # precheck and pick up candidates
+        candidates = server.sample_clients([pin for pin in range(args.all_clients) if clients[pin].precheck()])
 
         # local update and aggregate
         for c, participant in enumerate(candidates):
@@ -158,10 +158,14 @@ def main(args):
                 clients[participant].set_projection(Vks, means, is_private=(participant not in server.public))
 
             # update
-            model_state, bytes1, bytes2 = clients[participant].local_update()
+            model_state, accum_budget_accountant, bytes1, bytes2 = clients[participant].local_update()
 
             # aggregate
             server.aggregate(participant, model_state, args.Fedavg, args.PFA, args.PFA_plus)
+
+            if args.dp:
+                print('for client: %d and delta: %.5f the budget: %.8f and the cost budget: %.8f \n'
+                      % ((participant+1), args.delta, clients[participant].budget_accountant.epsilon, clients[participant].budget_accountant.accum_bgts))
 
         # load average weight
         global_model = server.update()
@@ -184,8 +188,8 @@ if __name__ == '__main__':
     parser.add_argument('--PFA_plus', type=bool, default=True)
     parser.add_argument('--proj_dims', type=int, default=1)
     parser.add_argument('--lanczos_iter', type=int, default=256)
-    parser.add_argument('--global_round', type=int, default=100)
-    parser.add_argument('--local_round', type=int, default=20)
+    parser.add_argument('--global_round', type=int, default=1000)
+    parser.add_argument('--local_round', type=int, default=100)
     parser.add_argument('--noniid', type=bool, default=False, help='if True, use noniid data')
     parser.add_argument('--num_clients', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=128)

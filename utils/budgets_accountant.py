@@ -23,7 +23,7 @@ class BudgetsAccountant:
         self.__curr_steps = 0
 
     def precheck(self, dataset_size, batch_size, loc_steps):
-        '''Pre-check if the current client could participate in next round'''
+        """Pre-check if the current client could participate in next round"""
 
         if self.finished:
             return False
@@ -31,7 +31,7 @@ class BudgetsAccountant:
         # Then we need to check if client will exhaust her budget in the following round, i.e., temp_accum_bgts > epsilon.
         tmp_steps = self.__curr_steps + loc_steps
         q = batch_size * 1.0 / dataset_size
-        tmp_accum_bgts = 10 * q * math.sqrt(tmp_steps * (-math.log10(self.delta))) / self.noise_multiplier
+        tmp_accum_bgts = 10 / 32 * q * math.sqrt(tmp_steps * (-math.log10(self.delta))) / self.noise_multiplier
 
         # If so, set the status as 'finished' and will not participate the rest training anymore; else, return True
         if self.epsilon - tmp_accum_bgts < 0:
@@ -42,7 +42,6 @@ class BudgetsAccountant:
             return True
 
     def update(self, loc_steps):
-        # print('update: ', clients_id)
         self.__curr_steps += loc_steps
         self.accum_bgts = self.tmp_accum_bgts
         self.tmp_accum_bgts = 0

@@ -209,7 +209,7 @@ class Server:
     def sample_clients(self, candidates):
         m = int(self.num_clients * self.sample_ratio)
 
-        if candidates < m:
+        if len(candidates) < m:
             return []
         else:
             participants = list(np.random.permutation(candidates))[0:m]
@@ -224,19 +224,19 @@ class Server:
 
             return participants if check else []
 
-    def init_alg(self, dp=True, Fedavg=False, weiavg=False, PFA=False, PFA_plus=False, proj_dims=None, lanczos_iter=None):
+    def init_alg(self, dp=True, Fedavg=False, Weiavg=False, PFA=False, PFA_plus=False, proj_dims=None, lanczos_iter=None):
 
         if Fedavg or (not dp):
             self.__alg = FedAvg()
-            print('\nUsing FedAvg algorithm')
-        elif weiavg:
+            print('\nUsing FedAvg algorithm!!!')
+        elif Weiavg:
             self.__alg = WeiAvg()
-            print('\nUsing PFA algorithm')
+            print('\nUsing PFA algorithm!!!')
         elif PFA or PFA_plus:
             self.__alg = WeiPFA(proj_dims, lanczos_iter, PFA, PFA_plus)
-            print('\nUsing PFA plus algorithm')
+            print('\nUsing PFA plus algorithm!!!')
         else:
-            raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!')
+            raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!!!')
 
     def get_projection_info(self):
         return self.__alg.Vks, self.__alg.means
@@ -247,7 +247,7 @@ class Server:
         elif Fedavg:
             self.__alg.aggregate(model_state)
         else:
-            raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!')
+            raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!!!')
 
     def update(self):
         mean_state = self.__alg.average()

@@ -17,7 +17,8 @@ class Client(nn.Module):
         super(Client, self).__init__()
         self.x_train = x_train
         self.y_train = y_train
-        self.dataset_size = dataset
+        self.dataset = dataset
+        self.dataset_size = len(self.dataset)
         self.batch_size = batch_size
         self.local_round = local_round
         self.dp = dp
@@ -46,6 +47,12 @@ class Client(nn.Module):
         self.means = means
         self.is_private = is_private
 
+    def precheck(self):
+        if not self.budget_accountant:
+            return True
+        else:
+            return self.budget_accountant.precheck(self.dataset_size, self.batch_size, self.local_round)
+
     def set_optimizer(self):
         pass
 
@@ -54,8 +61,8 @@ class Client(nn.Module):
         optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
         criterion = nn.CrossEntropyLoss()
 
-        x_batch = self.x_train[self.dataset_size]
-        y_batch = self.y_train[self.dataset_size]
+        x_batch = self.x_train[self.dataset]
+        y_batch = self.y_train[self.dataset]
 
         data_batch = TensorDataset(x_batch, y_batch)
         data_loader = DataLoader(data_batch, batch_size=self.batch_size, shuffle=True)
@@ -88,7 +95,7 @@ class Client(nn.Module):
                 train_acc += correct.item()
                 train_loss += loss.item()
 
-            # print('Epoch is: %d, Train acc: %.4f, Train loss: %.4f' % ((epoch + 1), train_acc / len(self.dataset_size), train_loss / len(self.dataset_size)))
+            print('Epoch is: %d, Train acc: %.4f, Train loss: %.4f' % ((epoch + 1), train_acc / self.dataset_size, train_loss / self.dataset_size))
 
         updates = [weight.data for weight in model.state_dict().values()]
 
@@ -113,5 +120,8 @@ class Client(nn.Module):
             Bytes2 = num_parameter2 * 4
             print('After PFA plus algorithm  num parameters: %d, Bytes: %d, M: %.8f' % (num_parameter2, Bytes2, Bytes2/(1024**2)))
 
-        return updates, Bytes1, Bytes2
+        # update the budget accountant
+        accum_budget_accountant = self.budget_accountant.update(self.local_round) if self.budget_accountant else None
+
+        return updates, accum_budget_accountant, Bytes1, Bytes2
 
