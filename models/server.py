@@ -228,15 +228,15 @@ class Server:
 
         if Fedavg or (not dp):
             self.__alg = FedAvg()
-            print('\nUsing FedAvg algorithm!!!')
+            print('\nUsing FedAvg algorithm!!!\n')
         elif Weiavg:
             self.__alg = WeiAvg()
-            print('\nUsing PFA algorithm!!!')
+            print('\nUsing PFA algorithm!!!\n')
         elif PFA or PFA_plus:
             self.__alg = WeiPFA(proj_dims, lanczos_iter, PFA, PFA_plus)
-            print('\nUsing PFA plus algorithm!!!')
+            print('\nUsing PFA plus algorithm!!!\n')
         else:
-            raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!!!')
+            raise ValueError('\nSelect an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!!!\n')
 
     def get_projection_info(self):
         return self.__alg.Vks, self.__alg.means
@@ -247,7 +247,7 @@ class Server:
         elif Fedavg:
             self.__alg.aggregate(model_state)
         else:
-            raise ValueError('Select an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!!!')
+            raise ValueError('\nSelect an algorithm (FedAvg/WeiAvg/PFA) to get the aggregated model!!!\n')
 
     def update(self):
         mean_state = self.__alg.average()

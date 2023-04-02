@@ -15,6 +15,7 @@ from models.server import Server
 from utils.dpsgd_utils import set_epsilons, compute_noise_multiplier
 from utils.budgets_accountant import BudgetsAccountant
 from utils.dataloader import loader
+from utils.main_utils import save_progress, print_accuracy_and_loss
 
 
 def test(model, x_val, y_val):
@@ -80,13 +81,13 @@ def main(args):
     dataset = prepare_local_dataset(args.noniid, args.num_clients, y_train)
 
     # set privacy preference
-    privacy_preferences = prepare_privacy_preferences(args.eps, args.all_clients)
+    privacy_preferences = prepare_privacy_preferences(args.eps, args.num_clients)
     print('privacy preferences: \n', privacy_preferences, '\n')
     print('noise multiplier:')
 
     # set clients
     clients = []
-    for i in range(args.all_clients):
+    for i in range(args.num_clients):
         client = Client(x_train=x_train,
                         y_train=y_train,
                         dataset=dataset[i],
@@ -131,6 +132,7 @@ def main(args):
 
     # communication round
     communication_round = args.global_round // args.local_round
+    print('the communication_round is %d' % communication_round)
 
     accuracy_accountant = []
     privacy_accountant = []
@@ -146,8 +148,14 @@ def main(args):
         print('the %d communication round \n' % (r + 1))
 
         # precheck and pick up candidates
-        candidates = server.sample_clients([pin for pin in range(args.all_clients) if clients[pin].precheck()])
+        candidates = server.sample_clients([pin for pin in range(args.num_clients) if clients[pin].precheck()])
 
+        # judge if condition of training can be satisfied
+        if len(candidates) == 0:
+            print("the condition of training can't be satisfied! (No public clients or no sufficient candidates!)")
+            break
+
+        max_accum_budget_accountant = 0
         # local update and aggregate
         for c, participant in enumerate(candidates):
             print("the %dth participant local update:" % (c+1))
@@ -159,6 +167,11 @@ def main(args):
 
             # update
             model_state, accum_budget_accountant, bytes1, bytes2 = clients[participant].local_update()
+
+            accum_nbytes1 += bytes1 / (1024 * 1024)
+            accum_nbytes2 += bytes2 / (1024 * 1024)
+            if accum_budget_accountant:
+                max_accum_budget_accountant = max(max_accum_budget_accountant, accum_budget_accountant)
 
             # aggregate
             server.aggregate(participant, model_state, args.Fedavg, args.PFA, args.PFA_plus)
@@ -175,12 +188,26 @@ def main(args):
             Vks, means = server.get_projection_info()
 
         # test
-        test_acc, test_loss = test(global_model, x_test, y_test)
-        print('current global model has test acc: %.4f  test loss: %.4f' % (test_acc, test_loss))
+        test_accuracy, test_loss = test(global_model, x_test, y_test)
+        accuracy_accountant.append(test_accuracy)
+        # print('current global model has test acc: %.4f  test loss: %.4f' % (test_accuracy, test_loss))
 
+        if args.dp:
+            privacy_accountant.append(max_accum_budget_accountant)
+            if args.PFA_plus:
+                accum_nbytes_list1.append(accum_nbytes1)
+                accum_nbytes_list2.append(accum_nbytes2)
+                save_progress(args, accuracy_accountant, privacy_accountant, accum_nbytes_list1, accum_nbytes_list2)
+            else:
+                save_progress(args, accuracy_accountant, privacy_accountant)
+        else:
+            save_progress(args, accuracy_accountant)
+
+        print_accuracy_and_loss(test_accuracy, test_loss)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--save_dir', type=str, default='results')
     parser.add_argument('--dataset', type=str, default='MNIST')
     parser.add_argument('--Fedavg', type=bool, default=False)
     parser.add_argument('--Weiavg', type=bool, default=False)
@@ -188,9 +215,9 @@ if __name__ == '__main__':
     parser.add_argument('--PFA_plus', type=bool, default=True)
     parser.add_argument('--proj_dims', type=int, default=1)
     parser.add_argument('--lanczos_iter', type=int, default=256)
-    parser.add_argument('--global_round', type=int, default=1000)
-    parser.add_argument('--local_round', type=int, default=100)
-    parser.add_argument('--noniid', type=bool, default=False, help='if True, use noniid data')
+    parser.add_argument('--global_round', type=int, default=100)
+    parser.add_argument('--local_round', type=int, default=20)
+    parser.add_argument('--noniid', type=bool, default=True, help='if True, use noniid data')
     parser.add_argument('--num_clients', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--dp', type=bool, default=True, help='if True, use differential privacy')
@@ -199,7 +226,6 @@ if __name__ == '__main__':
     parser.add_argument('--grad_norm', type=float, default=1.0)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--sample_ratio', type=float, default=0.8)
-    parser.add_argument('--all_clients', type=int, default=10)
     args = parser.parse_args()
 
     main(args)
