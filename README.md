@@ -4,10 +4,6 @@ This is the source code of paper __"Projected Federated Averaging with Heterogen
 
 But the original is not this, if you need to see the original, please see https://github.com/Emory-AIMS/PFA
 
-This repository is an implementation of Pytorch version of __Projected Federated Averaging (PFA)__ algorithm.
-
-In this repository, I have implemented __FedAvg, PFA, PFAplus__ alogorihtms.
-
 ## Getting Started
 
 This repository is an implementation of Pytorch version of __Federatered Averaging (FedAvg), Projected Federated Averaging (PFA) and Projetced Federated Averaging Plus (PFA plus)__ algorithm.
