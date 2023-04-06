@@ -6,7 +6,7 @@ But the original is not this, if you need to see the original, please see https:
 
 ## Getting Started
 
-This repository is an implementation of Pytorch version of __Federatered Averaging (FedAvg), Projected Federated Averaging (PFA) and Projetced Federated Averaging Plus (PFA plus)__ algorithms.
+This repository is an implementation of Pytorch version of __Federated Averaging (FedAvg), Projected Federated Averaging (PFA) and Projetced Federated Averaging Plus (PFA plus)__ algorithms.
 
 ## Install
 
