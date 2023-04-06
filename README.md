@@ -2,6 +2,8 @@
 
 This repository is an implementation of Pytorch version of __Projected Federated Averaging (PFA)__ algorithm.
 
+In this repository, I have implemented __FedAvg, PFA, PFAplus alogorihtms__.
+
 ## Getting Started
 
 This is the source code of paper __"Projected Federated Averaging with Heterogeneous Differential Privacy"__ (accepted by VLDB 2022).
