@@ -2,7 +2,7 @@
 
 This repository is an implementation of Pytorch version of __Projected Federated Averaging (PFA)__ algorithm.
 
-In this repository, I have implemented __FedAvg, PFA, PFAplus alogorihtms__.
+In this repository, I have implemented __FedAvg, PFA, PFAplus__ alogorihtms.
 
 ## Getting Started
 
